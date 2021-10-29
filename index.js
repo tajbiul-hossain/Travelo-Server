@@ -23,6 +23,7 @@ async function run() {
     await client.connect();
     const database = client.db("travelo");
     const servicesCollection = database.collection("services");
+    const bookingsCollection = database.collection("bookings");
 
     //GET API
     app.get("/services", async (req, res) => {
@@ -39,9 +40,18 @@ async function run() {
     });
 
     //POST API
+
+    //add new service
     app.post("/services", async (req, res) => {
       const newService = req.body;
       const result = await servicesCollection.insertOne(newService);
+      res.json(result);
+    });
+
+    //add a booking
+    app.post("/booking", async (req, res) => {
+      const newService = req.body;
+      const result = await bookingsCollection.insertOne(newService);
       res.json(result);
     });
 
@@ -58,7 +68,7 @@ async function run() {
           status: updatedService.status,
         },
       };
-      const result = await servicesCollection.updateOne(query, updateDoc);
+      const result = await bookingsCollection.updateOne(query, updateDoc);
       res.send(result);
     });
 
@@ -66,7 +76,7 @@ async function run() {
     app.delete("/services/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
-      const result = await servicesCollection.deleteOne(query);
+      const result = await bookingsCollection.deleteOne(query);
 
       // console.log(("deleting service with id", result));
       res.json(result);
