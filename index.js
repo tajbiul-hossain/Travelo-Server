@@ -26,23 +26,36 @@ async function run() {
     const bookingsCollection = database.collection("bookings");
 
     //GET API
-    app.get("/services", async (req, res) => {
+    app.get("/packages", async (req, res) => {
       const cursor = servicesCollection.find({});
       const services = await cursor.toArray();
       res.send(services);
     });
 
-    app.get("/services/:id", async (req, res) => {
+    app.get("/packages/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
       const service = await servicesCollection.findOne(query);
       res.send(service);
     });
 
+    app.get("/userbookings/:email", async (req, res) => {
+      const email = req.params.email;
+      const cursor = bookingsCollection.find({});
+      const bookings = await cursor.toArray();
+      res.send(bookings.filter((booking) => booking.userEmail === email));
+    });
+
+    app.get("/managebookings", async (req, res) => {
+      const cursor = bookingsCollection.find({});
+      const bookings = await cursor.toArray();
+      res.send(bookings);
+    });
+
     //POST API
 
-    //add new service
-    app.post("/services", async (req, res) => {
+    //add new package
+    app.post("/package", async (req, res) => {
       const newService = req.body;
       const result = await servicesCollection.insertOne(newService);
       res.json(result);
@@ -56,16 +69,13 @@ async function run() {
     });
 
     //UPDATE API
-    app.put("/services/:id", async (req, res) => {
+    app.put("/managebookings/:id", async (req, res) => {
       const id = req.params.id;
-      const updatedService = req.body;
+      const updatedBooking = req.body;
       const query = { _id: ObjectId(id) };
       const updateDoc = {
         $set: {
-          name: updatedService.name,
-          desc: updatedService.desc,
-          price: updatedService.price,
-          status: updatedService.status,
+          status: updatedBooking.status,
         },
       };
       const result = await bookingsCollection.updateOne(query, updateDoc);
@@ -73,12 +83,10 @@ async function run() {
     });
 
     //DELETE API
-    app.delete("/services/:id", async (req, res) => {
+    app.delete("/bookings/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
       const result = await bookingsCollection.deleteOne(query);
-
-      // console.log(("deleting service with id", result));
       res.json(result);
     });
   } finally {
@@ -88,7 +96,7 @@ async function run() {
 run().catch(console.dir);
 
 app.get("/", (req, res) => {
-  res.send("Running my CRUD server");
+  res.send("Travelo server is Running");
 });
 
 app.listen(port, () => {
