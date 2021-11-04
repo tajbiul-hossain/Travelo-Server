@@ -3,9 +3,18 @@ const { MongoClient } = require("mongodb");
 const cors = require("cors");
 const ObjectId = require("mongodb").ObjectId;
 require("dotenv").config();
+var admin = require("firebase-admin");
 
 const app = express();
 const port = process.env.PORT || 5000;
+
+//firebase admin init
+
+var serviceAccount = require("./travelo-fb967-firebase-adminsdk-zdbrk-30dacbd059.json");
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+});
 
 //middleware
 app.use(cors());
@@ -17,6 +26,18 @@ const client = new MongoClient(uri, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
+
+async function verifyToken(req, res, next) {
+  if (req.headers?.authorization?.startsWith("Bearer ")) {
+    const idToken = req.headers.authorization.split("Bearer ")[1];
+    try {
+      const decodedUser = await admin.auth().verifyIdToken(idToken);
+      req.decodedUserEmail = decodedUser.email;
+    } catch {}
+  }
+
+  next();
+}
 
 async function run() {
   try {
@@ -39,11 +60,16 @@ async function run() {
       res.send(service);
     });
 
-    app.get("/userbookings/:email", async (req, res) => {
-      const email = req.params.email;
-      const cursor = bookingsCollection.find({});
-      const bookings = await cursor.toArray();
-      res.send(bookings.filter((booking) => booking.userEmail === email));
+    app.get("/userbookings", verifyToken, async (req, res) => {
+      const email = req.query.email;
+      if (req.decodedUserEmail === email) {
+        const query = { userEmail: email };
+        const cursor = bookingsCollection.find(query);
+        const bookings = await cursor.toArray();
+        res.send(bookings);
+      } else {
+        res.status(401).json({ message: "User not authorized" });
+      }
     });
 
     app.get("/managebookings", async (req, res) => {
