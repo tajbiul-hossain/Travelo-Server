@@ -10,7 +10,7 @@ const port = process.env.PORT || 5000;
 
 //firebase admin init
 
-var serviceAccount = require("./travelo-fb967-firebase-adminsdk-zdbrk-30dacbd059.json");
+var serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
