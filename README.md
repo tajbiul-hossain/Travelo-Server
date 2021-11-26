@@ -1,4 +1,4 @@
-# Get the best treatment of any dental issues from us
+# Find the best deals for your next vacation.
 
 Check out the app [Travelo](https://travelo-fb967.web.app/)
 
